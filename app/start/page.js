@@ -15,6 +15,17 @@ export default function Start() {
   const [made, setMade] = useState(null); // {code, circle_id, link_id, expires_at, deed}
   const [qr, setQr] = useState(null);
   const [parent, setParent] = useState(null);
+  const [accepted, setAccepted] = useState(null); // {city, region} once the stranger accepts
+
+  // Watch the code until the other person accepts it.
+  useEffect(() => {
+    if (!made || accepted) return;
+    const id = setInterval(async () => {
+      const { data } = await supabase().from("links").select("accepted_at,city,region").eq("id", made.link_id).maybeSingle();
+      if (data && data.accepted_at) { setAccepted({ city: data.city, region: data.region }); clearInterval(id); }
+    }, 4000);
+    return () => clearInterval(id);
+  }, [made, accepted]);
 
   useEffect(() => {
     supabase().from("deed_types").select("id,name,points,kind,sort").eq("kind", "witnessed").order("sort").then(({ data }) => setTypes(data || []));
@@ -31,6 +42,7 @@ export default function Start() {
       const row = Array.isArray(data) ? data[0] : data;
       const url = `${SITE}/d/${row.code}`;
       setQr(await QRCode.toDataURL(url, { width: 400, margin: 1, errorCorrectionLevel: "M" }));
+      setAccepted(null);
       setMade({ ...row, deed: t.name, url });
     } catch (e) { setErr(e.message || "Something went wrong."); }
     setBusy(false);
@@ -44,16 +56,27 @@ export default function Start() {
 
   if (made) return (
     <main className="narrow" style={{ padding: "28px 20px" }}>
-      <div className="eyebrow">Show them this</div>
-      <h2>{made.deed}</h2>
-      <p className="muted">They scan it with their camera, or you send the link. No app needed on their side.</p>
-      <div className="codebox">
+      {accepted ? (
+        <div className="notice ok" style={{ textAlign: "center", padding: 18, fontSize: 18 }}>
+          <b>Accepted!</b> Someone{accepted.city ? ` near ${accepted.city}` : ""} picked up your deed. Their 24 hours just started.
+        </div>
+      ) : (
+        <div className="notice" style={{ background: "var(--gold-soft)", color: "var(--gold-deep)", textAlign: "center", fontWeight: 600 }}>
+          Nothing counts until the other person accepts this. Hand it to them now.
+        </div>
+      )}
+      <div className="eyebrow" style={{ marginTop: 14 }}>{made.deed}</div>
+      <h2>Give this to the person you helped</h2>
+      <div className="stack" style={{ marginTop: 12 }}>
+        <button className="btn gold block" onClick={share} style={{ fontSize: 18, padding: "18px 22px" }}>Text them the link</button>
+        <p className="small muted" style={{ textAlign: "center", margin: 0 }}>or let them scan this with their camera</p>
+      </div>
+      <div className="codebox" style={{ marginTop: 12 }}>
         <img src={qr} alt={"QR code for " + made.url} />
         <div className="code">{fmt(made.code)}</div>
-        <p className="small muted">Read it aloud if you have to. Valid 24 hours.</p>
+        <p className="small muted">They can also type this code at circleofdeeds.app. Valid 24 hours.</p>
       </div>
       <div className="stack" style={{ marginTop: 14 }}>
-        <button className="btn gold block" onClick={share}>Send the link</button>
         <Link className="btn ghost block" href={`/circle/${made.circle_id}`}>See this circle</Link>
         <button className="btn ghost sm block" onClick={() => setMade(null)}>Do another deed</button>
       </div>

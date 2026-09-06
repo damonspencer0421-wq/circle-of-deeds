@@ -30,10 +30,15 @@ export default function Receive() {
       });
   }, [clean]);
 
+  const [locating, setLocating] = useState(false);
   async function locate() {
+    setLocating(true);
     const l = await coarseLocate();
     if (l) { setLoc(l); if (l.city) setCity(l.city + (l.region ? ", " + l.region : "")); }
+    setLocating(false);
   }
+  // Ask for the coarse area as soon as the deed is ready, so nobody has to find the button.
+  useEffect(() => { if (state === "ready" && !loc && !city) locate(); }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function accept() {
     setState("accepting"); setErr(null);
@@ -54,7 +59,7 @@ export default function Receive() {
 
   if (state === "loading") return <main className="narrow" style={{ padding: 40 }}><p className="muted">Opening your deed…</p></main>;
   if (state === "missing") return <main className="narrow" style={{ padding: 40 }}><h2>No deed with that code</h2><p className="muted">Check the letters and try again. Codes never use 0, O, 1, I or L.</p><Link className="btn ghost" href="/d">Try another code</Link></main>;
-  if (state === "used") return <main className="narrow" style={{ padding: 40 }}><h2>This one's already been accepted</h2><p className="muted">Each code can be accepted once. You can still start your own circle.</p><Link className="btn gold" href="/start">Start a circle</Link></main>;
+  if (state === "used") return <main className="narrow" style={{ padding: 40 }}><h2>This one's already been accepted</h2><p className="muted">Each code can be accepted once. If this was yours, the other person already has it. You can still start your own circle.</p><Link className="btn gold" href="/start">Start a circle</Link></main>;
   if (state === "expired") return <main className="narrow" style={{ padding: 40 }}><h2>This code went quiet</h2><p className="muted">Codes last 24 hours. The kindness still happened; start a new circle with it.</p><Link className="btn gold" href="/start">Start a circle</Link></main>;
 
   if (state === "accepted") return (
@@ -77,10 +82,10 @@ export default function Receive() {
         <p className="muted">They asked you to keep it going. No account. No name. Just a 24-hour clock.</p>
       </div>
       <div className="stack" style={{ marginTop: 14 }}>
-        <label className="small muted">Where are you, roughly? City only, never your exact spot. Optional.</label>
+        <label className="small muted">Your area (city only, never your exact spot). This is how the circle measures miles.</label>
         <div style={{ display: "flex", gap: 8 }}>
-          <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Fort Worth, TX" />
-          <button className="btn ghost sm" type="button" onClick={locate}>Use my area</button>
+          <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={locating ? "Finding your area…" : "Fort Worth, TX"} />
+          <button className="btn ghost sm" type="button" onClick={locate} disabled={locating}>{locating ? "…" : "Find it"}</button>
         </div>
         {err && <div className="notice bad">{err}</div>}
         <button className="btn gold block" onClick={accept} disabled={state === "accepting"}>Accept &amp; keep it going</button>
