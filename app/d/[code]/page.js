@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { getGuestId, rememberLink } from "@/lib/guest";
+import { getGuestId, rememberLink, openLink } from "@/lib/guest";
 import { coarseLocate } from "@/lib/geo";
+import { track } from "@/lib/analytics";
 import Countdown from "@/components/Countdown";
+import ContinuationCard from "@/components/ContinuationCard";
 
 const VERB = { "held-door": "held the door for you", "gave-seat": "gave up a seat for you", "let-ahead": "let you go ahead in line", "bought-coffee": "bought you a coffee", "helped-bags": "helped with your bags", "helped-cross": "helped you cross the street", "paid-order": "paid for your order", "returned-item": "returned something you lost", "jumped-car": "helped you when you were stranded", "flat-tire": "changed your flat tire" };
 
@@ -18,15 +20,21 @@ export default function Receive() {
   const [city, setCity] = useState("");
   const [done, setDone] = useState(null);
   const [err, setErr] = useState(null);
+  const [showArea, setShowArea] = useState(false);
 
   useEffect(() => {
     supabase().from("links").select("id,circle_id,deed_type_id,points,accepted_at,expires_at,city,region,parent_link_id,deed_types(name)").eq("code", clean).maybeSingle()
       .then(({ data }) => {
         if (!data) { setState("missing"); return; }
         setLink(data);
-        if (data.accepted_at) setState("used");
+        const saved = openLink();
+        if (data.accepted_at && saved && String(saved.linkId) === String(data.id)) {
+          setDone({ link_id: data.id, circle_id: data.circle_id, pass_by: saved.passBy });
+          setState("accepted");
+        }
+        else if (data.accepted_at) setState("used");
         else if (new Date(data.expires_at).getTime() < Date.now()) setState("expired");
-        else setState("ready");
+        else { setState("ready"); track("receive_opened", { linkId: data.id, circleId: data.circle_id }); }
       });
   }, [clean]);
 
@@ -37,11 +45,9 @@ export default function Receive() {
     if (l) { setLoc(l); if (l.city) setCity(l.city + (l.region ? ", " + l.region : "")); }
     setLocating(false);
   }
-  // Ask for the coarse area as soon as the deed is ready, so nobody has to find the button.
-  useEffect(() => { if (state === "ready" && !loc && !city) locate(); }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
-
   async function accept() {
     setState("accepting"); setErr(null);
+    track("accept_started", { linkId: link?.id, circleId: link?.circle_id, metadata: { shared_city: Boolean(city.trim()) } });
     try {
       const guest = await getGuestId();
       let c = null, r = null;
@@ -50,6 +56,7 @@ export default function Receive() {
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
       rememberLink(row.link_id, row.circle_id, row.pass_by);
+      track("deed_accepted", { linkId: row.link_id, circleId: row.circle_id, metadata: { shared_city: Boolean(city.trim()) } });
       setDone(row); setState("accepted");
     } catch (e) { setErr(e.message || "That didn't work."); setState("ready"); }
   }
@@ -64,33 +71,40 @@ export default function Receive() {
 
   if (state === "accepted") return (
     <main className="narrow" style={{ padding: "28px 20px" }}>
-      <Countdown until={done.pass_by} />
-      <p className="muted" style={{ textAlign: "center" }}>You're in circle #{done.circle_id}. Do something kind for someone new, then pass it on.</p>
+      <div className="celebrate"><span aria-hidden="true">✨</span><b>You kept it moving!</b><span aria-hidden="true">✨</span></div>
+      <Countdown until={done.pass_by} label="to keep the circle moving" />
+      <p className="muted" style={{ textAlign: "center" }}>You're in circle #{done.circle_id}. Your mission: one kind thing for somebody new. Keep it tiny. Keep it real.</p>
+      <ContinuationCard circleId={done.circle_id} linkId={done.link_id} passBy={done.pass_by} />
       <div className="stack" style={{ marginTop: 16 }}>
-        <Link className="btn gold block" href="/start">I did a deed. Pass it on</Link>
+        <Link className="btn gold block" href="/start" onClick={() => track("continue_to_start", { linkId: done.link_id, circleId: done.circle_id })}>I did it — pass the spark</Link>
         <Link className="btn ghost block" href={`/circle/${done.circle_id}`}>See how far this circle has gone</Link>
       </div>
-      <p className="small muted" style={{ marginTop: 16 }}>Save this page or add it to your home screen. There's no account; this browser is your key.</p>
+      <p className="microcopy">Come back on this device and this page will remember you. No account, no inbox, no fuss.</p>
     </main>
   );
 
   return (
     <main className="narrow" style={{ padding: "28px 20px" }}>
       <div className="receive">
-        <div className="from">You just received a deed</div>
+        <div className="from">Plot twist: kindness</div>
         <h2 style={{ marginTop: 6 }}>Someone {verb}{link.city ? ` near ${link.city}` : ""}.</h2>
-        <p className="muted">They asked you to keep it going. No account. No name. Just a 24-hour clock.</p>
+        <p className="muted">Accept it, then do one good thing for somebody new within 24 hours. No account. No awkward messages. No sainthood application.</p>
       </div>
       <div className="stack" style={{ marginTop: 14 }}>
-        <label className="small muted">Your area (city only, never your exact spot). This is how the circle measures miles.</label>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={locating ? "Finding your area…" : "Fort Worth, TX"} />
-          <button className="btn ghost sm" type="button" onClick={locate} disabled={locating}>{locating ? "…" : "Find it"}</button>
-        </div>
+        <button className="area-toggle" type="button" onClick={() => setShowArea((value) => !value)} aria-expanded={showArea}>
+          <span aria-hidden="true">📍</span> {showArea ? "Hide city" : "Add my city to the journey (optional)"}
+        </button>
+        {showArea && <div className="area-panel">
+          <label className="small muted">City only—never your exact spot. Skip this if you prefer.</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={locating ? "Finding your area…" : "Fort Worth, TX"} />
+            <button className="btn ghost sm" type="button" onClick={() => { track("location_requested", { linkId: link?.id, circleId: link?.circle_id }); locate(); }} disabled={locating}>{locating ? "…" : "Find it"}</button>
+          </div>
+        </div>}
         {err && <div className="notice bad">{err}</div>}
-        <button className="btn gold block" onClick={accept} disabled={state === "accepting"}>Accept &amp; keep it going</button>
+        <button className="btn gold block big-action" onClick={accept} disabled={state === "accepting"}>{state === "accepting" ? "Joining the circle…" : "I'm in — keep it going"}</button>
         <button className="btn ghost sm block" onClick={() => setState("declined")}>No thanks</button>
-        {state === "declined" && <div className="notice ok">That's allowed. The kindness still counts for them.</div>}
+        {state === "declined" && <div className="notice ok">All good. Kindness is not a chain letter.</div>}
       </div>
     </main>
   );

@@ -17,14 +17,25 @@ export default async function Home() {
   return (
     <main>
       <section className="hero"><div className="wrap">
-        <div className="eyebrow">A Random Good Deeds Society project</div>
-        <h1>One held door.<br /><span style={{ color: "var(--gold-deep)" }}>Seven hundred miles.</span></h1>
-        <p className="lede">Do something kind for a stranger, hand it to them with a code, and watch it travel from person to person across the map.</p>
-        <div className="cta">
-          <Link className="btn gold" href="/start">I just did a deed</Link>
-          <Link className="btn ghost" href="/d">Someone gave me a code</Link>
+        <div className="hero-grid">
+          <div>
+            <div className="eyebrow">A Random Good Deeds Society project</div>
+            <h1>Kindness has legs.<br /><span style={{ color: "var(--gold-deep)" }}>Let’s see how far it gets.</span></h1>
+            <p className="lede">Do one good thing. Hand off a code. Watch that small moment travel from stranger to stranger.</p>
+            <div className="cta">
+              <Link className="btn gold" href="/start">I just did a good deed</Link>
+              <Link className="btn ghost" href="/d">I got a code</Link>
+            </div>
+            <p className="small muted">Free. No account. No inbox. No leaderboard of saints.</p>
+          </div>
+          <div className="spark-card" aria-label="How a circle moves">
+            <div className="spark-step"><span>1</span><b>You do a kind thing</b><small>Look at you go.</small></div>
+            <div className="spark-line" />
+            <div className="spark-step"><span>2</span><b>They accept it</b><small>One tap. Zero awkwardness.</small></div>
+            <div className="spark-line" />
+            <div className="spark-step"><span>3</span><b>They pass it on</b><small>Now it has a story.</small></div>
+          </div>
         </div>
-        <p className="small muted">Free. No account to receive a deed. No messaging, no tracking.</p>
       </div></section>
 
       <div className="wrap">
@@ -37,24 +48,25 @@ export default async function Home() {
       </div>
 
       <section><div className="wrap">
-        <div className="eyebrow">How it works</div>
-        <h2>Kindness that keeps moving</h2>
-        <div className="stack" style={{ marginTop: 16, maxWidth: 620 }}>
-          <div className="card"><h3>1. Do the deed</h3><p className="muted">Hold the door. Buy the coffee. Help with the bags. Then tap one tile and get a code.</p></div>
-          <div className="card"><h3>2. Hand it over</h3><p className="muted">They scan the QR or you text the link. No app, no names, no emails. About eight seconds.</p></div>
-          <div className="card"><h3>3. They have 24 hours</h3><p className="muted">The clock starts. They do a deed for someone new and pass it on. The circle grows, city by city.</p></div>
+        <div className="eyebrow">The tiny challenge</div>
+        <h2>Good deeds should not just sit there looking pleased with themselves.</h2>
+        <div className="how-grid" style={{ marginTop: 22 }}>
+          <div className="card playful-card"><span className="card-number">01</span><h3>Do something kind</h3><p className="muted">Hold a door. Help with bags. Rescue a shopping cart from a life of crime.</p></div>
+          <div className="card playful-card"><span className="card-number">02</span><h3>Hand over the spark</h3><p className="muted">Text a link or show the QR. They need no app, name, or email.</p></div>
+          <div className="card playful-card"><span className="card-number">03</span><h3>Keep the circle alive</h3><p className="muted">They get 24 hours to help somebody new. Then the story grows another link.</p></div>
         </div>
       </div></section>
 
       <section><div className="wrap">
-        <div className="eyebrow">Why it's safe</div>
-        <h2>Built so a stranger can trust it in eight seconds</h2>
-        <div className="stack" style={{ marginTop: 16, maxWidth: 620 }}>
-          <p><b>No names, no emails.</b> Receiving a deed needs nothing from you.</p>
-          <p><b>No messaging, ever.</b> Nobody in a circle can contact anybody else.</p>
-          <p><b>City, not location.</b> We keep a rounded area about ten miles wide, never coordinates.</p>
-          <p><b>Confirmed, not claimed.</b> A deed only counts when the person who received it accepts it.</p>
-          <p><b>Effort, not money.</b> Changing a tire is worth more than a latte. No deed is scored by dollars.</p>
+        <div className="eyebrow">Kind, not creepy</div>
+        <h2>Built for trust—not oversharing.</h2>
+        <div className="trust-grid" style={{ marginTop: 20 }}>
+          <div><b>🙅 No names or emails</b><span>Receiving a deed requires neither.</span></div>
+          <div><b>💬 No messaging, ever</b><span>Nobody in a circle can contact anybody else.</span></div>
+          <div><b>📍 City-level only</b><span>Your exact location is never stored.</span></div>
+          <div><b>🤝 Confirmed by the recipient</b><span>A deed counts only when it really lands.</span></div>
+          <div><b>💪 Effort, not dollars</b><span>Kindness is not a spending contest.</span></div>
+          <div><b>🫶 Dignity first</b><span>Sensitive deeds stay private and unscored.</span></div>
         </div>
       </div></section>
 

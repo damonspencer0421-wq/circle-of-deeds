@@ -18,7 +18,8 @@ export default async function Impact() {
   return (
     <main className="wrap" style={{ padding: "28px 20px" }}>
       <div className="eyebrow">Impact</div>
-      <h2>The movement, in numbers</h2>
+      <h2>The kindness receipts</h2>
+      <p className="muted">No individual rankings. Just proof that small things can travel.</p>
       <div className="stats" style={{ marginTop: 14 }}>
         <div className="stat"><div className="n">{n(s?.circles_alive)}</div><div className="l">circles alive this week</div></div>
         <div className="stat"><div className="n">{n((links || []).length)}</div><div className="l">deeds confirmed</div></div>

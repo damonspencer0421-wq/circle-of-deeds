@@ -14,5 +14,5 @@ export default function Countdown({ until, label = "to pass it on" }) {
     const id = setInterval(tick, 500);
     return () => clearInterval(id);
   }, [until]);
-  return <div className="clock">{txt}<small>{label}</small></div>;
+  return <div className="clock" role="timer" aria-live="off">{txt}<small>{label}</small></div>;
 }

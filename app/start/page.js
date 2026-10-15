@@ -4,9 +4,11 @@ import QRCode from "qrcode";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getGuestId, openLink } from "@/lib/guest";
+import { track } from "@/lib/analytics";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://circleofdeeds.app";
 const fmt = (c) => c.slice(0, 3) + "-" + c.slice(3);
+const EMOJI = { "held-door": "🚪", "gave-seat": "🪑", "let-ahead": "🙌", "bought-coffee": "☕", "helped-bags": "🛍️", "helped-cross": "🚶", "paid-order": "🧾", "returned-item": "🔎", "jumped-car": "🚗", "flat-tire": "🛞", other: "✨" };
 
 export default function Start() {
   const [types, setTypes] = useState([]);
@@ -44,11 +46,13 @@ export default function Start() {
       setQr(await QRCode.toDataURL(url, { width: 400, margin: 1, errorCorrectionLevel: "M" }));
       setAccepted(null);
       setMade({ ...row, deed: t.name, url });
+      track("link_created", { linkId: row.link_id, circleId: row.circle_id, metadata: { deed: t.id, extends_circle: Boolean(parent) } });
     } catch (e) { setErr(e.message || "Something went wrong."); }
     setBusy(false);
   }
 
   async function share() {
+    track("share_started", { linkId: made.link_id, circleId: made.circle_id });
     if (navigator.share) {
       try { await navigator.share({ title: "Keep it going", text: `Someone just did something kind for you. Keep it going: ${made.url}`, url: made.url }); } catch {}
     } else { try { await navigator.clipboard.writeText(made.url); alert("Link copied."); } catch {} }
@@ -58,18 +62,18 @@ export default function Start() {
     <main className="narrow" style={{ padding: "28px 20px" }}>
       {accepted ? (
         <div className="notice ok" style={{ textAlign: "center", padding: 18, fontSize: 18 }}>
-          <b>Accepted!</b> Someone{accepted.city ? ` near ${accepted.city}` : ""} picked up your deed. Their 24 hours just started.
+          <b>It landed!</b> Someone{accepted.city ? ` near ${accepted.city}` : ""} accepted your deed. Their 24 hours just started.
         </div>
       ) : (
         <div className="notice" style={{ background: "var(--gold-soft)", color: "var(--gold-deep)", textAlign: "center", fontWeight: 600 }}>
-          Nothing counts until the other person accepts this. Hand it to them now.
+          One tiny handoff left: ask them to open and accept it now.
         </div>
       )}
       <div className="eyebrow" style={{ marginTop: 14 }}>{made.deed}</div>
-      <h2>Give this to the person you helped</h2>
+      <h2>Hand over the spark</h2>
       <div className="stack" style={{ marginTop: 12 }}>
-        <button className="btn gold block" onClick={share} style={{ fontSize: 18, padding: "18px 22px" }}>Text them the link</button>
-        <p className="small muted" style={{ textAlign: "center", margin: 0 }}>or let them scan this with their camera</p>
+        <button className="btn gold block big-action" onClick={share}>Text them the link</button>
+        <p className="small muted" style={{ textAlign: "center", margin: 0 }}>or do the futuristic thing and let them scan it</p>
       </div>
       <div className="codebox" style={{ marginTop: 12 }}>
         <img src={qr} alt={"QR code for " + made.url} />
@@ -85,14 +89,14 @@ export default function Start() {
 
   return (
     <main className="narrow" style={{ padding: "28px 20px" }}>
-      <div className="eyebrow">{parent ? "Passing it on" : "Start a circle"}</div>
-      <h2>What did you just do?</h2>
-      <p className="muted">{parent ? "This deed extends the circle you're in." : "Pick the deed. Points reflect effort, never money."}</p>
+      <div className="eyebrow">{parent ? "The circle continues" : "Start a circle"}</div>
+      <h2>What good thing just happened?</h2>
+      <p className="muted">{parent ? "Nice. Pick it below and keep your circle rolling." : "Pick the closest match. This is not paperwork—promise."}</p>
       {err && <div className="notice bad">{err}</div>}
       <div className="tiles" style={{ marginTop: 12 }}>
         {types.map((t) => (
           <button className="tile" key={t.id} disabled={busy} onClick={() => pick(t)}>
-            {t.name}<span className="pt">{t.points} pt{t.points === 1 ? "" : "s"}</span>
+            <span><span className="deed-emoji" aria-hidden="true">{EMOJI[t.id] || EMOJI.other}</span>{t.name}</span><span className="pt">{t.points} pt{t.points === 1 ? "" : "s"}</span>
           </button>
         ))}
       </div>
