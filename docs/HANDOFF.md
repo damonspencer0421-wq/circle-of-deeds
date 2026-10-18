@@ -47,12 +47,14 @@ These are public counters and shape checks, not a full activity report.
 | `supabase/002_journal_policy_and_miles.sql` | Applied. Journal insert works, and circle miles recompute when a link is accepted. |
 | `supabase/003_app_events.sql` | **Not applied.** Safe to run once in the SQL editor when you want usage events. It does not change the deed flow. |
 
+The shared sandbox `circle-of-deeds-sandbox` in us-east-2 already has all three files applied. Local development uses that project. Do not re-run the files there, and do not run them on production.
+
 Setup commands for a laptop and for an empty database are in the [README](../README.md).
 
 ## Needs a decision or a login
 
 - Confirm `001_schema.sql` against the live function source before anyone uses it to rebuild production. The publishable key cannot read function bodies.
-- Run `003_app_events.sql` in the Supabase SQL editor if usage tracking should start. That is still an owner step.
+- Run `003_app_events.sql` on production if usage tracking should start there. That is still an owner step. The sandbox already has this table.
 - One empty journal row was inserted on Oct 18 while checking that journal writes are private. It has no guest, no deed, and no note, and it cannot be deleted with the publishable key. Remove it in the SQL editor if you want the table clean:
 
 ```sql
@@ -64,5 +66,5 @@ where guest_id is null
   and created_at < '2026-10-19';
 ```
 
-- `.env.example` points local development at production. A local "create" or "accept" changes live rows.
+- `.env.example` points local development and tests at the shared sandbox `circle-of-deeds-sandbox` in us-east-2 (`https://wdvrtfbobcdjoayxipmn.supabase.co`). Migrations 001, 002, and 003 are already applied there. Production keys live only in Vercel. Do not copy them into `.env.local`.
 - Phone-size findings are in [mobile-audit-2026-10-18.md](mobile-audit-2026-10-18.md). The highest one: at phone width the header hides Impact, Journal, and Got a code, and nothing replaces them.
