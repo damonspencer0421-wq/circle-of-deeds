@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
+import CircleRankLink from "@/components/CircleRankLink";
 
 export const revalidate = 120;
 
@@ -31,7 +31,7 @@ export default async function Impact() {
         <div className="card"><h3>Most common deeds</h3>{deeds.length ? deeds.map(([k, v]) => <div className="rank" key={k}><span>{k}</span><b>{v}</b></div>) : <p className="muted small">Nothing yet. Be the first.</p>}</div>
         <div className="card"><h3>Cities</h3>{places.length ? places.map(([k, v]) => <div className="rank" key={k}><span>{k}</span><b>{v}</b></div>) : <p className="muted small">No cities yet.</p>}</div>
         <div className="card"><h3>States</h3>{states.length ? states.map(([k, v]) => <div className="rank" key={k}><span>{k}</span><b>{v}</b></div>) : <p className="muted small">No states yet.</p>}</div>
-        <div className="card"><h3>Longest circles</h3>{(circles || []).filter((c) => c.link_count > 0).length ? circles.filter((c) => c.link_count > 0).map((c) => <div className="rank" key={c.id}><Link href={`/circle/${c.id}`}>Circle #{c.id}</Link><b>{c.link_count} links · {c.point_total} pts</b></div>) : <p className="muted small">No circles yet.</p>}</div>
+        <div className="card"><h3>Longest circles</h3>{(circles || []).filter((c) => c.link_count > 0).length ? circles.filter((c) => c.link_count > 0).map((c) => <CircleRankLink key={c.id} id={c.id} linkCount={c.link_count} pointTotal={c.point_total} />) : <p className="muted small">No circles yet.</p>}</div>
       </div>
       <p className="small muted" style={{ marginTop: 20 }}>Rankings are by reach and links, never by points per person. Locations are city-level only.</p>
     </main>
