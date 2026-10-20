@@ -36,7 +36,8 @@ export default function Journal() {
           <option value="">What did you do?</option>
           {types.map((t) => <option key={t.id} value={t.id}>{t.name}{t.kind === "journal" ? "" : " (witnessed)"}</option>)}
         </select>
-        <textarea rows={3} placeholder="A line for yourself. Optional." value={note} onChange={(e) => setNote(e.target.value)} />
+        <label htmlFor="journal-note" className="small muted">Note for yourself</label>
+        <textarea id="journal-note" rows={3} placeholder="A line for yourself. Optional." value={note} onChange={(e) => setNote(e.target.value)} />
         <button className="btn gold block">Log it</button>
         {msg && <div className="notice ok">{msg}</div>}
       </form>

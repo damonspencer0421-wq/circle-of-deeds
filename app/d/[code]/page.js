@@ -95,9 +95,9 @@ export default function Receive() {
           <span aria-hidden="true">📍</span> {showArea ? "Hide city" : "Add my city to the journey (optional)"}
         </button>
         {showArea && <div className="area-panel">
-          <label className="small muted">City only—never your exact spot. Skip this if you prefer.</label>
+          <label className="small muted" htmlFor="receive-city">City only—never your exact spot. Skip this if you prefer.</label>
           <div style={{ display: "flex", gap: 8 }}>
-            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={locating ? "Finding your area…" : "Fort Worth, TX"} />
+            <input id="receive-city" value={city} onChange={(e) => setCity(e.target.value)} placeholder={locating ? "Finding your area…" : "Fort Worth, TX"} />
             <button className="btn ghost sm" type="button" onClick={() => { track("location_requested", { linkId: link?.id, circleId: link?.circle_id }); locate(); }} disabled={locating}>{locating ? "…" : "Find it"}</button>
           </div>
         </div>}

@@ -44,7 +44,25 @@ header.top .wrap{display:flex;align-items:center;justify-content:space-between;h
 nav.top{display:flex;gap:18px;font-size:14.5px;font-weight:500}
 nav.top a{text-decoration:none;color:var(--muted)}
 nav.top a:hover{color:var(--ink)}
-@media (max-width:640px){nav.top{display:none}}
+.mobile-nav{display:none}
+.menu-button{min-height:44px;min-width:44px}
+.mobile-panel{position:absolute;right:0;top:calc(100% + 8px);z-index:30;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);min-width:min(260px,calc(100vw - 32px));padding:8px;display:flex;flex-direction:column}
+.mobile-panel[hidden]{display:none}
+.mobile-panel a{min-height:44px;display:flex;align-items:center;padding:0 14px;border-radius:12px;text-decoration:none;font-weight:600}
+.mobile-panel a:hover,.mobile-panel a[aria-current="page"]{background:var(--sky)}
+.mobile-panel a:focus-visible,.menu-button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+a.rank-link{min-height:44px;align-items:center;text-decoration:none;padding:10px 4px}
+a.rank-link:hover{background:var(--sky)}
+.code-hint{background:var(--gold-soft);color:var(--ink)}
+@media (max-width:640px){
+  nav.top{display:none}
+  .mobile-nav{display:block;position:static;flex:none}
+  header.top .wrap{gap:8px}
+  .logo{font-size:16px;min-width:0}
+  .logo small{display:none}
+  .logo span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  header.top .header-pass{flex:none;min-height:44px}
+}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
 .stack{display:flex;flex-direction:column;gap:12px}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
